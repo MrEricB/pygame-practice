@@ -8,6 +8,7 @@ pygame.init() #does return a tuple so it can be assigned to varialbe
 white = (255,255,255)
 black = (0,0,0)
 red = (255,0,0)
+green = (0,155,0)
 
 display_width = 800
 display_height = 600
@@ -25,34 +26,47 @@ pygame.display.update()
 
 clock = pygame.time.Clock() # return a pygame clock obj for FPS
 
-block_size = 10
+block_size = 20
 FPS = 30
 
 font = pygame.font.SysFont(None, 25)
 
+def snake(block_size, snakelist):
+    for XnY in snakelist:
+        pygame.draw.rect(gameDisplay, green, [XnY[0],XnY[1],block_size, block_size])
+
+
 def message_to_screen(msg, color):
     screen_text = font.render(msg, True, color)
-    gameDisplay.blit(screen_text, [display_width/2, display_height/2]) #note blit does not render the font to the screen, need update to do thata
+    gameDisplay.blit(screen_text, [display_width/2, display_height/2]) # note blit does not render the font to the screen, need update to do thata
 
 def gameLoop():
     gameExit = False
     gameOver = False
+
     lead_x = display_width/2
     lead_y = display_height/2
+
     lead_x_change = 0
     lead_y_change = 0
 
-    randAppleX = random.randrange(0, display_width-block_size)
-    randAppleY = random.randrange(0, display_height-block_size)
+    snakeList = []
+    snakeLength = 1
+
+    randAppleX = round(random.randrange(0, display_width-block_size))#/10.0)*10.0
+    randAppleY = round(random.randrange(0, display_height-block_size))#/10.0)*10.0
 
     while not gameExit:
-
+        
         while gameOver == True:
             gameDisplay.fill(white)
             message_to_screen('Game over, press C to play again or Q to quit', red)
             pygame.display.update()
 
             for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    gameExit = True
+                    gameOver = False
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_q:
                         gameExit = True
@@ -60,7 +74,7 @@ def gameLoop():
                     if event.key == pygame.K_c:
                         gameLoop() # recursive, not efficient fix later
 
-
+        # handle events, ie keypress, mouse click, etc.
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gameExit = True
@@ -88,11 +102,36 @@ def gameLoop():
         lead_y += lead_y_change
 
         gameDisplay.fill(white)
-        pygame.draw.rect(gameDisplay, red, [randAppleX, randAppleY, block_size, block_size])
-        pygame.draw.rect(gameDisplay, black, [lead_x,lead_y,block_size,block_size])
-        # better way to draw rec but more complexe, since fill can be graphics accelerated
-        # gameDisplay.fill(red, rect=[200,200,50,50])
+        # apple the snake is going to eat
+        AppleThickness = 30
+        pygame.draw.rect(gameDisplay, red, [randAppleX, randAppleY, AppleThickness, AppleThickness])
+        
+        
+        snakeHead = []
+        snakeHead.append(lead_x)
+        snakeHead.append(lead_y)
+        snakeList.append(snakeHead)
+
+        if len(snakeList) > snakeLength:
+            del snakeList[0]
+
+        # check for snake running into its self
+        for eachSegment in snakeList[:-1]:
+            if eachSegment == snakeHead:
+                gameOver = True
+
+        snake(block_size, snakeList)
         pygame.display.update()
+
+
+        # if lead_x >= randAppleX and lead_x <= randAppleX + AppleThickness:
+        #     if lead_y >= randAppleY and lead_y <= randAppleY + AppleThickness:
+        #         randAppleX = round(random.randrange(0, display_width-block_size))#/10.0)*10.0
+        #         randAppleY = round(random.randrange(0, display_height-block_size))#/10.0)*10.0
+        #         snakeLength += 1
+
+        if lead_x > randAppleX and lead_x < randAppleX + AppleThickness 
+
 
         clock.tick(FPS) # seting FPS here
     # to exit pygame
